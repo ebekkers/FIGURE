@@ -10,10 +10,8 @@ class Pirke:
                  h_range=(1.8, 2.2), 
                  l_arm_range=(0.7, 1.0), 
                  l_leg_range=(0.9, 1.2), 
-                 torso_colors={
-                     "up": ["red", "green"],
-                     "down": ["blue", "yellow"]
-                     },
+                 torso_colors=["red", "green", "blue", "gold"],
+                 color_probabilities={"up": [0.4, 0.4, 0.1, 0.1], "down": [0.1, 0.1, 0.4, 0.4]},
                  canvas_range=(-3.5,3.5)):
         
         self.g0_base = np.array(g0_base)  # Initial pose (x, y, theta)
@@ -24,6 +22,7 @@ class Pirke:
         self.l_arm_range = l_arm_range
         self.l_leg_range = l_leg_range        
         self.torso_colors = torso_colors
+        self.color_probabilities = color_probabilities
         self.canvas_range = canvas_range
         self.joint_var = 20
         
@@ -64,7 +63,9 @@ class Pirke:
         self.angles = angles
     
     def sample_torso_color(self, pose_class):
-        self.torso_color = random.choice(self.torso_colors.get(pose_class, ["black"]))
+        """Samples torso color based on the defined probability distribution."""
+        probabilities = self.color_probabilities.get(pose_class, [1/len(self.torso_colors)] * len(self.torso_colors))
+        self.torso_color = np.random.choice(self.torso_colors, p=probabilities)
 
     def transform(self, parent, offset, theta):
         """Apply SE(2) transformation hierarchically."""
