@@ -39,3 +39,6 @@ This dataset is licensed under the **[CC BY 4.0 License](https://creativecommons
 ## Citation  
 If you use Pirke in your research, please cite it as:  
 
+```
+@misc{pirke2025, title={Pirke: A dataset for Pixel-Informed Re-representations of Kinematic Entities}, author={Erik J. Bekkers}, year={2025}, howpublished={\url{https://github.com/ebekkers/pirke}}, }
+```
