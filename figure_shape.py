@@ -141,7 +141,7 @@ class Shape:
         
         # Draw limbs as lines
         for start, end in self.limbs_r2.values():
-            ax.plot([start[0], end[0]], [start[1], end[1]], 'b-', linewidth=7, color='gray')
+            ax.plot([start[0], end[0]], [start[1], end[1]], '-', linewidth=7, color='gray')
         
         # Draw head as a circle
         head_radius = 0.9 * self.w / 2
@@ -209,6 +209,8 @@ class Shape:
             # image_array[i,j] = image_array[i,j] * 0
         # for (i,j,t) in points_se2_pixel:
             # image_array[i,j] = image_array[i,j] * 0
+
+        plt.close(fig) 
                
         return image_array, points_r2_pixel, points_se2_pixel
 
