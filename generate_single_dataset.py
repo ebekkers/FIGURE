@@ -4,7 +4,7 @@ import numpy as np
 import json
 from tqdm import tqdm
 from PIL import Image
-from figure_shape import Shape
+from figure_shape import Shape  # Ensure this is correctly implemented
 
 def generate_gif(images, labels, dataset_name, save_dir, num_samples=10):
     """Generates an animated GIF with sample images from each class."""
@@ -34,18 +34,26 @@ def generate_gif(images, labels, dataset_name, save_dir, num_samples=10):
     )
     print(f"Saved animated GIF: {gif_path}")
 
-def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64):
+def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is_test=False, bias_swapped=False):
     """Generates and saves a shape classification dataset to an HDF5 file."""
     
     save_dir = "datasets"
     os.makedirs(save_dir, exist_ok=True)
+
+    # Adjust dataset name for test sets
+    if is_test:
+        dataset_name += "-test-bias" if bias_swapped else "-test"
+    
     save_path = f"{save_dir}/{dataset_name}.h5"
 
     # Define classes
     classes = ["up", "down"]
     num_classes = len(classes)
 
-    # Initialize dataset sizes
+    # Adjust sample count for test set (20% of train)
+    if is_test:
+        num_samples_per_class //= 5  # Reduce to 20%
+
     num_samples = num_samples_per_class * num_classes
     images_shape = (num_samples, image_size, image_size, 3)
     points_r2_shape = (num_samples, 13, 2)
@@ -58,7 +66,7 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64):
         "FIGURE-Shape-CB": {"color_bias": True, "pose_variation": False},
         "FIGURE-Shape-PI": {"color_bias": False, "pose_variation": True},
         "FIGURE-Shape-F": {"color_bias": True, "pose_variation": True},
-    }[dataset_name]
+    }[dataset_name.replace("-test", "").replace("-bias", "")]  # Remove test suffix to get original name
 
     print(f"Generating dataset: {dataset_name}")
 
@@ -84,10 +92,16 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64):
         for class_index, class_label in enumerate(classes):
             count = 0  # Track how many images we store per class for the GIF
             for _ in tqdm(range(num_samples_per_class), desc=f"Generating {dataset_name} ({class_label})"):
+
+                # Set color probabilities
                 if config['color_bias']:
-                    color_probabilities = {"up": [0.4, 0.4, 0.1, 0.1], "down": [0.1, 0.1, 0.4, 0.4]}
+                    if bias_swapped:
+                        color_probabilities = {"up": [0.1, 0.1, 0.4, 0.4], "down": [0.4, 0.4, 0.1, 0.1]}  # Swapped!
+                    else:
+                        color_probabilities = {"up": [0.4, 0.4, 0.1, 0.1], "down": [0.1, 0.1, 0.4, 0.4]}  # Default bias
                 else:
-                    color_probabilities = {"up": [1, 0, 0, 0], "down": [1, 0, 0, 0]}
+                    color_probabilities = {"up": [1, 0, 0, 0], "down": [1, 0, 0, 0]}  # No bias
+
                 shift_min_max = 2
                 figure = Shape(
                     torso_colors=["red", "green", "blue", "gold"],
@@ -132,5 +146,15 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64):
     print(f"Dataset {dataset_name} saved successfully to {save_path}!")
 
 if __name__ == "__main__":
-    dataset_name = input("Enter dataset name (FIGURE-Shape-B, FIGURE-Shape-CB, FIGURE-Shape-PI, FIGURE-Shape-F): ")
-    generate_dataset(dataset_name)
+    dataset_names = ["FIGURE-Shape-B", "FIGURE-Shape-CB", "FIGURE-Shape-PI", "FIGURE-Shape-F"]
+
+    for dataset_name in dataset_names:
+        # Generate training dataset
+        generate_dataset(dataset_name)
+
+        # Generate test dataset (20% of training size)
+        generate_dataset(dataset_name, is_test=True)
+
+        # Generate bias-swapped test set for CB & F
+        if "CB" in dataset_name or "F" in dataset_name:
+            generate_dataset(dataset_name, is_test=True, bias_swapped=True)

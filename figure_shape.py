@@ -220,7 +220,7 @@ if __name__ == "__main__":
     random_rotate = False
     canvas_range = (-3.5 - shift_min_max, 3.5 + shift_min_max)
     resolution = 128
-    figure = Pirke(canvas_range=canvas_range)
+    figure = Shape(canvas_range=canvas_range)
 
     # Sample random pose
     g = [
