@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import random
 from PIL import Image
 
-class Pirke:
+class Shape:
     def __init__(self, 
                  g0_base=(0, 0, np.pi / 2), 
                  w_range=(0.8, 1.2), 
@@ -12,7 +12,7 @@ class Pirke:
                  l_leg_range=(0.9, 1.2), 
                  torso_colors=["red", "green", "blue", "gold"],
                  color_probabilities={"up": [0.4, 0.4, 0.1, 0.1], "down": [0.1, 0.1, 0.4, 0.4]},
-                 canvas_range=(-3.5,3.5)):
+                 canvas_range=(-5.5,5.5)):
         
         self.g0_base = np.array(g0_base)  # Initial pose (x, y, theta)
         
