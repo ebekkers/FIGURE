@@ -11,7 +11,7 @@ class Shape:
                  l_arm_range=(0.7, 1.0), 
                  l_leg_range=(0.9, 1.2), 
                  torso_colors=["red", "green", "blue", "gold"],
-                 color_probabilities={"up": [0.4, 0.4, 0.1, 0.1], "down": [0.1, 0.1, 0.4, 0.4]},
+                 color_probabilities={"up": [0.5, 0.5, 0.0, 0.0], "down": [0.0, 0.0, 0.5, 0.5]},
                  canvas_range=(-5.5,5.5)):
         
         self.g0_base = np.array(g0_base)  # Initial pose (x, y, theta)
