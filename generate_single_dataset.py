@@ -93,9 +93,9 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is
                 # Set color probabilities
                 if config['color_bias']:
                     if bias_swapped:
-                        color_probabilities = {"up": [0.1, 0.1, 0.4, 0.4], "down": [0.4, 0.4, 0.1, 0.1]}  # Swapped!
+                        color_probabilities = {"up": [0.0, 0.0, 0.5, 0.5], "down": [0.5, 0.5, 0.0, 0.0]}  # Swapped!
                     else:
-                        color_probabilities = {"up": [0.4, 0.4, 0.1, 0.1], "down": [0.1, 0.1, 0.4, 0.4]}  # Default bias
+                        color_probabilities = {"up": [0.5, 0.5, 0.0, 0.0], "down": [0.0, 0.0, 0.5, 0.5]}  # Default bias
                 else:
                     color_probabilities = {"up": [1, 0, 0, 0], "down": [1, 0, 0, 0]}  # No bias
 

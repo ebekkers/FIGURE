@@ -22,10 +22,10 @@ train_dataset = FigureDataset(DATASET_NAME, split="train", download=True)
 test_dataset = FigureDataset(DATASET_NAME, split="test", download=True)
 
 # Make things more challenging by reducing train set size to 10%
-from torch.utils.data import Subset
-subset_size = int(0.1 * len(train_dataset))  # 10% of training set
-subset_indices = torch.randperm(len(train_dataset))[:subset_size]  # Random subset
-train_dataset = Subset(train_dataset, subset_indices)
+# from torch.utils.data import Subset
+# subset_size = int(0.1 * len(train_dataset))  # 10% of training set
+# subset_indices = torch.randperm(len(train_dataset))[:subset_size]  # Random subset
+# train_dataset = Subset(train_dataset, subset_indices)
 
 # Load bias-swapped test set if available
 try:
