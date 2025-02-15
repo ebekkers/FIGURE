@@ -50,10 +50,7 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is
     classes = ["up", "down"]
     num_classes = len(classes)
 
-    # Adjust sample count for test set (20% of train)
-    if is_test:
-        num_samples_per_class //= 5  # Reduce to 20%
-
+    # Define dataset shapes
     num_samples = num_samples_per_class * num_classes
     images_shape = (num_samples, image_size, image_size, 3)
     points_r2_shape = (num_samples, 13, 2)
