@@ -29,6 +29,8 @@ A shape classification dataset with **global transformations**, where figures un
 
 The <ins>f</ins>ull set of variations by combination of **both color bias and global transformations**. This variant tests the ability to disentangle **shape, texture, and absolute position** when learning representations.  
 
+## Work in progress...
+
 FIGURE provides a **controlled and flexible testbed** for studying **equivariance, invariance, and generalization** in deep learning models. Future extensions may introduce additional **motion complexity, 3D representations, and real-world domain adaptation**.  
 
 ## License  
