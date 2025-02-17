@@ -29,16 +29,6 @@ A shape classification dataset with **global transformations**, where figures un
 
 The <ins>f</ins>ull set of variations by combination of **both color bias and global transformations**. This variant tests the ability to disentangle **shape, texture, and absolute position** when learning representations.  
 
-## Motion Classification  
-
-- **FIGURE-Motion-B**: The base **motion classification** dataset. Figures are classified based on **motion sequences**, which are represented as **ordered shape frames evolving over time**. No color bias or global transformations are applied.  
-
-- **FIGURE-Motion-CB**: A motion classification dataset where specific motion patterns (e.g., waving or dancing) are associated with a **color bias during training**. At test time, these color associations are flipped to evaluate **texture-agnostic motion recognition**.  
-
-- **FIGURE-Motion-PI**: A motion classification dataset with **global transformations**, where each figure undergoes **random SE(2) transformations** at every timestep. This tests whether models can recognize motion patterns **independent of absolute position and orientation**.  
-
-- **FIGURE-Motion-F**: The most challenging variant, combining **color bias and global transformations in motion sequences**. It evaluates the ability of models to learn **robust, shape-based motion representations** that are invariant to both texture and position.  
-
 FIGURE provides a **controlled and flexible testbed** for studying **equivariance, invariance, and generalization** in deep learning models. Future extensions may introduce additional **motion complexity, 3D representations, and real-world domain adaptation**.  
 
 ## License  
