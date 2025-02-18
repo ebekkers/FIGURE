@@ -9,7 +9,7 @@ from tqdm import tqdm
 from data_loader_torch import FigureDataset
 
 # ---- CONFIGURATION ----
-DATASET_NAME = "FIGURE-Shape-F"  # Change to any dataset
+DATASET_NAME = "FIGURE-Shape-PI"  # Change to any dataset
 BATCH_SIZE = 32
 NUM_EPOCHS = 20
 LEARNING_RATE = 1e-3
@@ -43,7 +43,7 @@ test_bias_loader = DataLoader(test_bias_dataset, batch_size=BATCH_SIZE, shuffle=
 # ---- MODEL: ----
 class SimpleCNN(nn.Module):
     """A simple CNN model with a ResNet-like structure."""
-    def __init__(self, num_classes=2):
+    def __init__(self, num_classes=4):
         super(SimpleCNN, self).__init__()
         self.backbone = models.resnet18(pretrained=True)
         self.backbone.fc = nn.Linear(self.backbone.fc.in_features, num_classes)
@@ -54,7 +54,7 @@ class SimpleCNN(nn.Module):
 
 # Select model type
 MODEL_TYPE = "cnn" 
-model = SimpleCNN(num_classes=2)
+model = SimpleCNN(num_classes=4)
 model = model.to(DEVICE)
 
 

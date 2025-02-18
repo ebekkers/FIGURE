@@ -6,11 +6,11 @@ from tqdm import tqdm
 from PIL import Image
 from figure_shape import Shape  # Ensure this is correctly implemented
 
-def generate_gif(images, labels, dataset_name, save_dir, num_samples=10):
+def generate_gif(images, labels, dataset_name, save_dir, num_samples=5):
     """Generates an animated GIF with sample images from each class."""
     os.makedirs(f"{save_dir}/visualizations", exist_ok=True)
 
-    classes = ["up", "down"]
+    classes = ["up-up", "down-down", "up-down", "down-up"]
     frames = {cls: [] for cls in classes}
 
     for cls_index, cls_label in enumerate(classes):
@@ -25,16 +25,16 @@ def generate_gif(images, labels, dataset_name, save_dir, num_samples=10):
 
     # Save GIFs for each class
     gif_path = f"{save_dir}/visualizations/{dataset_name}.gif"
-    frames["up"][0].save(
+    frames["up-up"][0].save(
         gif_path,
         save_all=True,
-        append_images=frames["up"] + frames["down"],
+        append_images=frames["up-up"] + frames["down-down"] + frames["up-down"] + frames["down-up"],
         duration=500,  # 500ms per frame
         loop=0
     )
     print(f"Saved animated GIF: {gif_path}")
 
-def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is_test=False, bias_swapped=False):
+def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is_test=False, bias_swapped=False, color_consistency=1.0):
     """Generates and saves a shape classification dataset to an HDF5 file."""
     
     save_dir = "datasets"
@@ -47,7 +47,7 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is
     save_path = f"{save_dir}/{dataset_name}.h5"
 
     # Define classes
-    classes = ["up", "down"]
+    classes = ["up-up", "down-down", "up-down", "down-up"]
     num_classes = len(classes)
 
     # Define dataset shapes
@@ -80,7 +80,7 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is
             "image_shape": images_shape,
             "points_r2_shape": points_r2_shape,
             "points_se2_shape": points_se2_shape,
-            "label_mapping": {0: "up", 1: "down"},
+            "label_mapping": {0: "up-up", 1: "down-down", 2: "up-down", 3: "down-up"},
         }
 
         index = 0
@@ -91,18 +91,32 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is
             for _ in tqdm(range(num_samples_per_class), desc=f"Generating {dataset_name} ({class_label})"):
 
                 # Set color probabilities
+                based_color_probabilities = {
+                            "up-up": [1.0, 0.0, 0.0, 0.0], 
+                            "down-down": [0.0, 1.0, 0.0, 0.0],
+                            "up-down": [0.0, 0.0, 1.0, 0.0],
+                            "down-up": [0.0, 0.0, 0.0, 1.0]}
                 if config['color_bias']:
                     if bias_swapped:
-                        color_probabilities = {"up": [0.0, 0.0, 0.5, 0.5], "down": [0.5, 0.5, 0.0, 0.0]}  # Swapped!
+                        color_probabilities = {  # Swapped probabilities! TODO: don't hard-code this...
+                            "up-up": [0.0, 0.0, 0.0, 1.0], 
+                            "down-down": [0.0, 0.0, 1.0, 0.0],
+                            "up-down": [0.0, 1.0, 0.0, 0.0],
+                            "down-up": [1.0, 0.0, 0.0, 0.0]}
                     else:
-                        color_probabilities = {"up": [0.5, 0.5, 0.0, 0.0], "down": [0.0, 0.0, 0.5, 0.5]}  # Default bias
+                        color_probabilities = based_color_probabilities
                 else:
-                    color_probabilities = {"up": [1, 0, 0, 0], "down": [1, 0, 0, 0]}  # No bias
+                    color_probabilities = {  # Constant probabilty for all classes
+                            "up-up": [1.0, 0.0, 0.0, 0.0], 
+                            "down-down": [1.0, 0.0, 0.0, 0.0],
+                            "up-down": [1.0, 0.0, 0.0, 0.0],
+                            "down-up": [1.0, 0.0, 0.0, 0.0]}
 
                 shift_min_max = 2
                 figure = Shape(
                     torso_colors=["red", "green", "blue", "gold"],
                     color_probabilities=color_probabilities,
+                    color_consistency=color_consistency
                 )
 
                 g = [
@@ -122,8 +136,8 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is
                 points_se2_dset[index] = points_se2
                 labels_dset[index] = class_index  # 0: up, 1: down
 
-                # Collect first 10 samples per class for the GIF
-                if count < 10:
+                # Collect first 5 samples per class for the GIF
+                if count < 5:
                     gif_samples[class_label].append(image)
                     count += 1
 
@@ -134,8 +148,8 @@ def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is
 
     # Generate and save sample GIF
     generate_gif(
-        images=gif_samples["up"] + gif_samples["down"],  # Merge up + down images
-        labels=[0] * 10 + [1] * 10,  # Corresponding labels
+        images=gif_samples["up-up"] + gif_samples["down-down"] + gif_samples["up-down"] + gif_samples["down-up"],
+        labels=[0] * 5 + [1] * 5 + [2] * 5 + [3] * 5,  # Corresponding labels
         dataset_name=dataset_name,
         save_dir=save_dir
     )

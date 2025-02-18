@@ -11,7 +11,11 @@ class Shape:
                  l_arm_range=(0.7, 1.0), 
                  l_leg_range=(0.9, 1.2), 
                  torso_colors=["red", "green", "blue", "gold"],
-                 color_probabilities={"up": [0.5, 0.5, 0.0, 0.0], "down": [0.0, 0.0, 0.5, 0.5]},
+                 color_probabilities={"up-up": [1.0, 0.0, 0.0, 0.0], 
+                                      "down-down": [0.0, 1.0, 0.0, 0.0],
+                                      "down-down": [0.0, 0.0, 1.0, 0.0],
+                                      "down-down": [0.0, 0.0, 0.0, 1.0]},
+                 color_consistency=1.0,
                  canvas_range=(-5.5,5.5)):
         
         self.g0_base = np.array(g0_base)  # Initial pose (x, y, theta)
@@ -23,10 +27,15 @@ class Shape:
         self.l_leg_range = l_leg_range        
         self.torso_colors = torso_colors
         self.color_probabilities = color_probabilities
+        for key in self.color_probabilities:
+            self.color_probabilities[key] = np.array(color_probabilities[key]) * color_consistency + (1 - np.array(color_probabilities[key])) * (1 - color_consistency) / (len(color_probabilities[key])-1)
         self.canvas_range = canvas_range
         self.joint_var = 20
         
-        self.resample(g=[0.,0.,0.], pose_class = 'up')
+        # Define the possible arm classes
+        self.arm_classes = ["up-up", "down-down", "up-down", "down-up"]
+        
+        self.resample(g=[0.,0.,0.], pose_class = 'up-up')
 
     def set_g0(self, g):
         self.g = g
@@ -43,13 +52,22 @@ class Shape:
 
     def sample_angles(self, pose_class):
         """Samples joint angles based on the pose class."""
-        if pose_class == "up":
-            theta1 = np.radians(np.random.uniform(-80, -10))
-            theta3 = np.radians(np.random.uniform(10, 80))
-        else:  # "down"
-            theta1 = np.radians(np.random.uniform(-170, -80))
-            theta3 = np.radians(np.random.uniform(100, 170))
-        
+
+        if pose_class == "up-up":
+            theta1 = np.radians(np.random.uniform(-85, -10))
+            theta3 = np.radians(np.random.uniform(10, 85))
+        elif pose_class == "down-down":
+            theta1 = np.radians(np.random.uniform(-170, -95))
+            theta3 = np.radians(np.random.uniform(95, 170))
+        elif pose_class == "up-down":
+            theta1 = np.radians(np.random.uniform(-85, -10))
+            theta3 = np.radians(np.random.uniform(95, 170))
+        elif pose_class == "down-up":
+            theta1 = np.radians(np.random.uniform(-170, -95))
+            theta3 = np.radians(np.random.uniform(10, 85))
+        else:
+            raise ValueError(f"Unknown class label: {pose_class}")
+               
         angles = {
             "theta1": theta1,
             "theta2": np.radians(np.random.uniform(-self.joint_var, self.joint_var)),
@@ -229,7 +247,7 @@ if __name__ == "__main__":
             np.random.uniform(0, 2 * np.pi) if random_rotate else 0.0
         ]
     # Generate figure at that pose
-    figure.resample(g=g, pose_class='down')
+    figure.resample(g=g, pose_class='up-up')
     # And render
     image, points_r2, points_se2 = figure.render(image_size=resolution)
 
