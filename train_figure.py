@@ -9,27 +9,20 @@ from tqdm import tqdm
 from data_loader_torch import FigureDataset
 
 # ---- CONFIGURATION ----
-DATASET_NAME = "FIGURE-Shape-PI"  # Change to any dataset
+DATASET_NAME = "FIGURE-Shape-F"  # Change to any dataset
 BATCH_SIZE = 32
 NUM_EPOCHS = 20
 LEARNING_RATE = 1e-3
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-CHECKPOINT_DIR = "checkpoints"
-os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 # Load datasets
-train_dataset = FigureDataset(DATASET_NAME, split="train", download=True)
-test_dataset = FigureDataset(DATASET_NAME, split="test", download=True)
-
-# Make things more challenging by reducing train set size to 10%
-# from torch.utils.data import Subset
-# subset_size = int(0.1 * len(train_dataset))  # 10% of training set
-# subset_indices = torch.randperm(len(train_dataset))[:subset_size]  # Random subset
-# train_dataset = Subset(train_dataset, subset_indices)
+color_consistency = 1.0
+train_dataset = FigureDataset(DATASET_NAME, split="train", download=True, color_consistency=color_consistency)
+test_dataset = FigureDataset(DATASET_NAME, split="test", download=True, color_consistency=color_consistency)
 
 # Load bias-swapped test set if available
 try:
-    test_bias_dataset = FigureDataset(DATASET_NAME, split="test-bias", download=True)
+    test_bias_dataset = FigureDataset(DATASET_NAME, split="test-bias", download=True, color_consistency=color_consistency)
     has_test_bias = True
 except RuntimeError:
     print(f"No bias-swapped test set found for {DATASET_NAME}.")
@@ -40,7 +33,7 @@ train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, nu
 test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
 test_bias_loader = DataLoader(test_bias_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4) if has_test_bias else None
 
-# ---- MODEL: ----
+# ---- MODEL ----
 class SimpleCNN(nn.Module):
     """A simple CNN model with a ResNet-like structure."""
     def __init__(self, num_classes=4):
@@ -52,21 +45,19 @@ class SimpleCNN(nn.Module):
         return self.backbone(x)
 
 
-# Select model type
-MODEL_TYPE = "cnn" 
-model = SimpleCNN(num_classes=4)
-model = model.to(DEVICE)
-
+# Initialize model
+model = SimpleCNN(num_classes=4).to(DEVICE)
 
 # ---- TRAINING SETUP ----
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
+# Cosine Annealing LR Scheduler
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS, eta_min=1e-6)
 
 # ---- TRAINING LOOP ----
 def train():
-    print(f"Training {MODEL_TYPE.upper()} on {DATASET_NAME} for {NUM_EPOCHS} epochs...")
-    best_acc = 0.0
+    print(f"Training on {DATASET_NAME} for {NUM_EPOCHS} epochs...")
 
     for epoch in range(NUM_EPOCHS):
         model.train()
@@ -88,21 +79,19 @@ def train():
             correct += (predicted == labels).sum().item()
             total += labels.size(0)
 
-            # Update tqdm bar with real-time loss
             loop.set_postfix(loss=loss.item(), acc=correct / total)
 
         train_acc = correct / total
         print(f"Epoch {epoch+1}: Train Loss: {total_loss:.4f}, Train Acc: {train_acc:.4f}")
 
-        # Evaluate after each epoch with progress bars
-        test_acc = evaluate(test_loader, "Test Set")
-        test_bias_acc = evaluate(test_bias_loader, "Bias-Swapped Test Set") if has_test_bias else None
+        # Step the scheduler
+        scheduler.step()
+        print(f"Updated Learning Rate: {scheduler.get_last_lr()[0]:.6f}")
 
-        # Save the best model
-        if test_acc > best_acc:
-            best_acc = test_acc
-            torch.save(model.state_dict(), f"{CHECKPOINT_DIR}/{DATASET_NAME}_{MODEL_TYPE}_best.pth")
-            print("✅ Saved best model checkpoint!")
+        # Evaluate after each epoch
+        evaluate(test_loader, "Test Set")
+        if has_test_bias:
+            evaluate(test_bias_loader, "Bias-Swapped Test Set")
 
     print("🎉 Training complete!")
 
@@ -133,7 +122,7 @@ def evaluate(loader, name):
 # ---- RUN TRAINING ----
 if __name__ == "__main__":
     train()
-    print("Final Test Set Accuracy:")
+    print("\nFinal Test Set Accuracy:")
     evaluate(test_loader, "Test Set")
     
     if has_test_bias:

@@ -8,24 +8,32 @@ from torchvision import transforms
 class FigureDataset(Dataset):
     """PyTorch Dataset for FIGURE benchmark. Downloads HDF5 files if missing."""
 
-    BASE_URL = "https://staff.fnwi.uva.nl/e.j.bekkers/FIGURE/"
+    BASE_URL_TEMPLATE = "https://staff.fnwi.uva.nl/e.j.bekkers/FIGURE/{}/"
 
-    def __init__(self, dataset_name, split="train", data_dir="figure_datasets", transform=None, download=True):
+    def __init__(self, dataset_name, split="train", color_consistency=1.0, data_dir="figure_datasets", transform=None, download=True):
         """
         Args:
             dataset_name (str): Name of the dataset (e.g., 'FIGURE-Shape-B').
             split (str): Dataset split - "train" (default), "test", or "test-bias".
+            color_consistency (float): Color consistency level (e.g., 0.25, 0.5, 0.8, 0.9, 1.0).
             data_dir (str): Local directory to store datasets.
             transform (callable, optional): Transformations to apply to images.
             download (bool): Whether to download the dataset if not found.
         """
         assert split in ["train", "test", "test-bias"], "Invalid split! Choose from 'train', 'test', or 'test-bias'."
-        
+
+        # Convert color_consistency to a string with at least one decimal
+        consistency_str = f"{color_consistency:.10f}".rstrip("0")
+        if consistency_str.endswith("."):
+            consistency_str += "0"
+        self.BASE_URL = self.BASE_URL_TEMPLATE.format(consistency_str)
+
         self.dataset_name = dataset_name
         self.split = split
-        self.data_dir = data_dir
+        self.data_dir = os.path.join(data_dir, consistency_str)  # Store in a subdirectory
+        self.color_consistency = color_consistency
 
-        # Determine filename based on split
+        # Use the original filename
         file_suffix = "" if split == "train" else f"-{split}"
         self.file_name = f"{dataset_name}{file_suffix}.h5"
         self.file_path = os.path.join(self.data_dir, self.file_name)
@@ -46,7 +54,7 @@ class FigureDataset(Dataset):
         """Downloads the dataset from the official server if it's not already available."""
         os.makedirs(self.data_dir, exist_ok=True)
         url = f"{self.BASE_URL}{self.file_name}"
-        print(f"Downloading {self.dataset_name} ({self.split}) from {url} to {self.data_dir}...")
+        print(f"Downloading {self.dataset_name} ({self.split}) from {url} to {self.file_path}...")
 
         response = requests.get(url, stream=True, allow_redirects=True)
         if response.status_code == 200:
@@ -90,16 +98,14 @@ class FigureDataset(Dataset):
         """Ensure the file is closed when the dataset object is deleted."""
         self.close()
 
-
-
 if __name__ == "__main__":
-    dataset = FigureDataset("FIGURE-Shape-B", split="train", download=True)
+    dataset = FigureDataset("FIGURE-Shape-B", split="train", color_consistency=0.9, download=True)
     print(f"Training set size: {len(dataset)} samples")
 
-    test_dataset = FigureDataset("FIGURE-Shape-B", split="test", download=True)
+    test_dataset = FigureDataset("FIGURE-Shape-B", split="test", color_consistency=0.9, download=True)
     print(f"Test set size: {len(test_dataset)} samples")
 
-    test_bias_dataset = FigureDataset("FIGURE-Shape-CB", split="test-bias", download=True)
+    test_bias_dataset = FigureDataset("FIGURE-Shape-CB", split="test-bias", color_consistency=0.9, download=True)
     print(f"Bias-swapped test set size: {len(test_bias_dataset)} samples")
 
     from torch.utils.data import DataLoader
@@ -113,6 +119,3 @@ if __name__ == "__main__":
         print("Batch points_se2 shape:", points_se2.shape)
         print("Batch labels:", labels)
         break
-
-
-

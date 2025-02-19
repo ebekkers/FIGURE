@@ -34,10 +34,9 @@ def generate_gif(images, labels, dataset_name, save_dir, num_samples=5):
     )
     print(f"Saved animated GIF: {gif_path}")
 
-def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is_test=False, bias_swapped=False, color_consistency=1.0):
+def generate_dataset(dataset_name, num_samples_per_class=5000, image_size=64, is_test=False, bias_swapped=False, color_consistency=1.0, save_dir="datasets"):
     """Generates and saves a shape classification dataset to an HDF5 file."""
     
-    save_dir = "datasets"
     os.makedirs(save_dir, exist_ok=True)
 
     # Adjust dataset name for test sets
