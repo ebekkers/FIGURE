@@ -49,11 +49,11 @@ def sample(model, device, input_shape, batch_size=64, steps=100, animation_gif="
             frames.append(frame[0])
     
     os.makedirs("results", exist_ok=True)
-    imageio.mimsave(os.path.join("results", animation_gif), frames, duration=0.1)
+    imageio.mimsave(os.path.join("results", animation_gif), frames, fps=20, loop=0)
     print(f"Animation GIF saved to {animation_gif}")
     
     final_samples = ((x_t.cpu().numpy().transpose(0, 2, 3, 1) + 0.5) * 255).clip(0,255).astype('uint8')
-    imageio.mimsave(os.path.join("results", final_samples_gif), final_samples, fps=2)
+    imageio.mimsave(os.path.join("results", final_samples_gif), final_samples, fps=1, loop=0)
     print(f"Final Samples GIF saved to {final_samples_gif}")
 
 # ---- TRAINING FUNCTION ----
