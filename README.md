@@ -29,9 +29,9 @@ A shape classification dataset with **global transformations**, where figures un
 
 The <ins>f</ins>ull set of variations by combination of **both color bias and global transformations**. This variant tests the ability to disentangle **shape, texture, and absolute position** when learning representations.  
 
-## Some baseline results
+### Some baseline results
 
-Below you'll find the reslults by training a resnet-18 on each of the datasets for various levels of ```color_consistency```. Note that for ```color_consistency=1.0``` the classes purely correlate with a predefined color (arms up always red), with ```color_consistency=0.8``` only 80\% of the time a class is rendered with the preferred color, and ```color_consistency=0.25``` essentially means a random color for every figure (since there are only 4 classes). In the colums labeled with "(OOD)" you'll find the results on the test set in which the color-class correlations are swapped (e.g. the up class now prefers yellow colors). A low performance on this set suggests overfitting to the shirt color.
+Using the script ```experiments/train_figure_classifier_all_datasets.py``` you'll be able to genereate the reslults of training a resnet-18 on each of the datasets for various levels of ```color_consistency```, as given below. Note that for ```color_consistency=1.0``` the classes purely correlate with a predefined color (arms up always red), with ```color_consistency=0.8``` only 80\% of the time a class is rendered with the preferred color, and ```color_consistency=0.25``` essentially means a random color for every figure (since there are only 4 classes). In the colums labeled with "(OOD)" you'll find the results on the test set in which the color-class correlations are swapped (e.g. the up class now prefers yellow colors). A low performance on this set suggests overfitting to the shirt color.
 
 | Consistency | B | CB | CB (OOD) | PI | F | F (OOD) |
 |------------|----|----|----------|----|----|--------|
@@ -43,6 +43,19 @@ Below you'll find the reslults by training a resnet-18 on each of the datasets f
 | 0.25 | 0.9995 | 0.9995 | 1.0000 | 0.9828 | 0.9805 | 0.9790 |
 
 What we are seeing here is that as soon as the color bias is not perfect the resnet will pick up on other cues (such as the actual pose of the figure) to base the classification on. The most challenging dataset is F, which includes both color biases as well as random rotations and translations in the train and test sets.
+
+## Generative modeling
+
+I think all of us have been confronted with disturbing generated images with people with 3 arms and 6 or 7 fingers per hand. Similarly to the above described problem of texture bias, these artifacts are likely due to a lacking capability of generative models to represent geometric content. The FIGURE dataset provides a playground to address these problems in generative AI. For example, with ```experiments/train_figure_generator.py``` you can train a Flow Matching model on the figure dataset with the following results:
+
+![](experiments/results/generated_animation.gif) ![](experiments/results/generated_samples.gif)
+
+It indeed generates anatomically incorrect figures:
+
+![](experiments/results/generated_samples_1.gif)
+![](experiments/results/generated_samples_2.gif)
+![](experiments/results/generated_samples_3.gif)
+![](experiments/results/generated_samples_4.gif)
 
 ## Work in progress...
 
