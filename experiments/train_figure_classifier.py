@@ -6,6 +6,9 @@ import torchvision.models as models
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+# In order to be able to import the dataloader:
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data_loader_torch import FigureDataset
 
 # ---- CONFIGURATION ----

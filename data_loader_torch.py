@@ -3,7 +3,7 @@ import h5py
 import torch
 import requests
 from torch.utils.data import Dataset
-from torchvision import transforms
+
 
 class FigureDataset(Dataset):
     """PyTorch Dataset for FIGURE benchmark. Downloads HDF5 files if missing."""
@@ -27,7 +27,6 @@ class FigureDataset(Dataset):
         if consistency_str.endswith("."):
             consistency_str += "0"
         self.BASE_URL = self.BASE_URL_TEMPLATE.format(consistency_str)
-        print(self.BASE_URL)
 
         self.dataset_name = dataset_name
         self.split = split

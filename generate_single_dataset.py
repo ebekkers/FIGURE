@@ -4,7 +4,7 @@ import numpy as np
 import json
 from tqdm import tqdm
 from PIL import Image
-from figure_shape import Shape  # Ensure this is correctly implemented
+from figure_class import Shape  # Ensure this is correctly implemented
 
 def generate_gif(images, labels, dataset_name, save_dir, num_samples=5):
     """Generates an animated GIF with sample images from each class."""
