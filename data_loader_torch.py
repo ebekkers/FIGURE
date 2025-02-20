@@ -27,6 +27,7 @@ class FigureDataset(Dataset):
         if consistency_str.endswith("."):
             consistency_str += "0"
         self.BASE_URL = self.BASE_URL_TEMPLATE.format(consistency_str)
+        print(self.BASE_URL)
 
         self.dataset_name = dataset_name
         self.split = split
