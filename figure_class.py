@@ -183,6 +183,38 @@ class Shape:
         j = min(max(0,j),dim_j-1)
 
         return i, j
+    
+    def pixel_to_world(self, i, j, canvas_range, dim_i, dim_j):
+        """
+        Convert pixel coordinates (i, j) to world coordinates (x, y), preserving aspect ratio.
+        
+        Args:
+            i (int): Pixel row index.
+            j (int): Pixel column index.
+            canvas_range (tuple): The world coordinate range (min_x, max_x).
+            dim_i (int): Image height in pixels.
+            dim_j (int): Image width in pixels.
+        
+        Returns:
+            (float, float): World coordinates (x, y).
+        """
+        min_x, max_x = canvas_range
+        min_y, max_y = canvas_range
+        width, height = max_x - min_x, max_y - min_y
+        delta_x = width / dim_j
+        delta_y = height / dim_i
+
+        x = (j + 0.5) * delta_x + min_x
+        y = min_y - (i - 0.5 - dim_i) * delta_y
+
+        return x, y
+    
+    def angle_from_segment(self, x_start, x_end):
+        dx = x_end[0] - x_start[0]
+        dy = x_end[1] - x_start[1]
+        angle = np.atan2(dy, dx)
+        return angle
+
 
     def render(self, image_size=64):
         """
@@ -230,7 +262,52 @@ class Shape:
 
         plt.close(fig) 
                
-        return image_array, points_r2_pixel, points_se2_pixel
+        return image_array, np.array(points_r2_pixel), np.array(points_se2_pixel)
+    
+    def set_pose_from_landmarks(self, points_r2_pixel, image_size):
+        """
+        Reconstructs the stick figure's pose from detected landmark points.
+        
+        Args:
+            points_r2_pixel (numpy array): Detected 13 landmark points in pixel coordinates, shape [13,2].
+        """
+        points_r2_world = np.array([self.pixel_to_world(x, y, self.canvas_range, image_size, image_size) for (x,y) in points_r2_pixel])
+        # points_r2_world = np.array([(x,y) for (x,y) in points_r2_pixel])
+        x0, x1, x2, x3, x4, x5, x6, x7, x8, x2_tilde, x4_tilde, x6_tilde, x8_tilde = points_r2_world
+        
+        # The overall pose
+        theta0 = (self.angle_from_segment(x5, x1) + self.angle_from_segment(x7, x3)) / 2
+        self.g0 = np.array([x0[0], x0[1], theta0])
+        self.g = self.g0.copy()
+        self.g[2] = self.g[2] - np.pi / 2
+
+        self.w = (np.linalg.norm(x1 - x3) + np.linalg.norm(x5 - x7)) / 2
+        self.h = (np.linalg.norm(x1 - x5) + np.linalg.norm(x3 - x7)) / 2
+        self.l_arm = (np.linalg.norm(x2 - x1) + np.linalg.norm(x2_tilde - x2) + np.linalg.norm(x4 - x3) + np.linalg.norm(x4_tilde - x4)) / 4
+        self.l_leg = (np.linalg.norm(x6 - x5) + np.linalg.norm(x6_tilde - x6) + np.linalg.norm(x8 - x7) + np.linalg.norm(x8_tilde - x8)) / 4
+
+        theta1 = self.angle_from_segment(x1, x2) - theta0
+        theta2 = self.angle_from_segment(x2, x2_tilde) - theta1 - theta0
+        theta3 = self.angle_from_segment(x3, x4) - theta0
+        theta4 = self.angle_from_segment(x4, x4_tilde) - theta3 - theta0
+        theta5 = self.angle_from_segment(x5, x6) - theta0
+        theta6 = self.angle_from_segment(x6, x6_tilde) - theta5 - theta0
+        theta7 = self.angle_from_segment(x7, x8) - theta0
+        theta8 = self.angle_from_segment(x8, x8_tilde) - theta7 - theta0
+        
+        self.angles = {
+            "theta1": theta1,
+            "theta2": theta2,
+            "theta3": theta3,
+            "theta4": theta4,
+            "theta5": theta5, 
+            "theta6": theta6,
+            "theta7": theta7,
+            "theta8": theta8
+        }
+
+        # Recompute kinematics with the extracted values
+        self.compute_kinematics([0,0,0])
 
 # Example usage
 if __name__ == "__main__":
@@ -252,11 +329,22 @@ if __name__ == "__main__":
     image, points_r2, points_se2 = figure.render(image_size=resolution)
 
     # Show the rendered image
+    fig = figure.visualize()
+    ax = fig.gca()
+    ax.set_aspect('equal')
+
     fig = plt.figure(frameon=False)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
     # ax.imshow(image, aspect='auto')
     ax.imshow(image, aspect='equal')
+
+    # Test reconstruction from landmarks
+    # landmarks_r2 = 
+    figure.set_pose_from_landmarks(points_r2, resolution)
+    fig = figure.visualize()
+    ax = fig.gca()
+    ax.set_aspect('equal')
 
     1+1
