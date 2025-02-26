@@ -2,12 +2,12 @@
 
 FIGURE is a synthetic dataset designed for studying **shape-based and motion-based representation learning** while controlling for **texture bias and global transformations**. Each sample in FIGURE is modeled as a **hierarchical kinematic structure**, where limbs are defined relative to a central **torso frame**. The dataset allows for controlled evaluations of robustness to **texture bias, global transformations, and motion dynamics**.  
 
-Each sample is defined by a **set of relative limb frames**, describing the spatial relationships between body parts. In some variants, figures also undergo **global transformations**, where the entire body is placed within a world coordinate frame using SE(2) transformations. This enables experiments on **pose-invariant learning** while distinguishing between **relative shape structure and absolute world position**.  
+Each sample is defined by a **set of relative limb frames**, describing the spatial relationships between body parts. In some variants, figures also undergo **global transformations**, where the entire body is placed within a world coordinate frame using SE(2) transformations. This enables experiments on **pose-invariant learning** while distinguishing between **relative shape structure and absolute world position**. [See this pdf for more details.](Notes_FIGURE.pdf)
 
 FIGURE consists of two main tasks:  
 
 1. **Shape Classification:** Figures are classified based on their **relative limb configurations** (e.g., arms up vs. arms down).  
-2. **Motion Classification:** Figures are classified based on **sequences of shape frames evolving over time**, representing distinct motion patterns.  
+2. **Motion Classification (not yet implemented):** Figures are classified based on **sequences of shape frames evolving over time**, representing distinct motion patterns.  
 
 To evaluate different aspects of representation learning, FIGURE includes the following sub-datasets:  
 
@@ -15,11 +15,11 @@ To evaluate different aspects of representation learning, FIGURE includes the fo
 
 **FIGURE-Shape-B**:  ![FIGURE-Shape-B](datasets/1.0/visualizations/FIGURE-Shape-B.gif) ![FIGURE-Shape-B](datasets/visualizations/1.0/FIGURE-Shape-B-test.gif) 
 
-The <ins>b</ins>ase **shape classification** dataset. Figures are classified based on their **shape**, which is defined by the arrangement of **limb frames** (e.g., arms up vs. arms down). There are no global transformations or color biases.
+The <ins>b</ins>ase **shape classification** dataset. Figures are classified based on their **shape**, which is defined by the arrangement of **limb frames** (e.g., both arms up vs. both arms down vs. left up, right down vs. right up, left down). There are no global transformations or color biases.
 
 **FIGURE-Shape-CB**:  ![FIGURE-Shape-B](datasets/1.0/visualizations/FIGURE-Shape-CB.gif) ![FIGURE-Shape-B](datasets/1.0/visualizations/FIGURE-Shape-CB-test.gif) ![FIGURE-Shape-B](datasets/1.0/visualizations/FIGURE-Shape-CB-test-bias.gif) 
 
-A variant introducing a **<ins>c</ins>olor <ins>b</ins>ias** in training, where a specific class (e.g., arms-up figures) is more often associated with a particular shirt color. At test time, this correlation is inverted, allowing for an evaluation of **texture-invariant learning**.  
+A variant introducing a **<ins>c</ins>olor <ins>b</ins>ias** in training, where a specific class (e.g., up-up figures) is more often associated with a particular shirt color. At test time, this correlation is inverted, allowing for an evaluation of **texture-invariant learning**.  
 
 **FIGURE-Shape-PI**:  ![FIGURE-Shape-B](datasets/1.0/visualizations/FIGURE-Shape-PI.gif) ![FIGURE-Shape-B](datasets/1.0/visualizations/FIGURE-Shape-PI-test.gif) 
 
